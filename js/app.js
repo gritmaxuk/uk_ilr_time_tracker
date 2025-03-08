@@ -395,10 +395,12 @@ document.addEventListener('DOMContentLoaded', () => {
         
         noTripsMessage.style.display = 'none';
         
-        // Sort trips by departure date (newest first)
-        const sortedTrips = [...trips].sort((a, b) => new Date(b.departure) - new Date(a.departure));
+        // Map trips with their original index, then sort by departure date (newest first)
+        const sortedTrips = trips
+          .map((trip, originalIndex) => ({ trip, originalIndex }))
+          .sort((a, b) => new Date(b.trip.departure) - new Date(a.trip.departure));
         
-        sortedTrips.forEach((trip, index) => {
+        sortedTrips.forEach(({ trip, originalIndex }) => {
             const row = document.createElement('tr');
             
             // Departure date
@@ -444,14 +446,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const editBtn = document.createElement('button');
             editBtn.className = 'text-indigo-600 hover:text-indigo-900 mr-2';
             editBtn.textContent = 'Edit';
-            editBtn.addEventListener('click', () => editTrip(index));
+            editBtn.addEventListener('click', () => editTrip(originalIndex));
             actionsCell.appendChild(editBtn);
             
             // Delete button
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'text-red-600 hover:text-red-900';
             deleteBtn.textContent = 'Delete';
-            deleteBtn.addEventListener('click', () => deleteTrip(index));
+            deleteBtn.addEventListener('click', () => deleteTrip(originalIndex));
             actionsCell.appendChild(deleteBtn);
             
             row.appendChild(actionsCell);
