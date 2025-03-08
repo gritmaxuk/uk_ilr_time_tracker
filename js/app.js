@@ -510,6 +510,51 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Update days until reduction
         document.getElementById('days-until-reduction').textContent = daysUntilReduction;
+        
+        // Calculate and update total time in UK
+        if (currentProfile && currentProfile.firstEntry) {
+            const currDate = parseDate(currentDateInput.value) || new Date();
+            const totalTime = calculateTotalTimeInUK(currentProfile.firstEntry, currDate, currentProfile.trips);
+            
+            // Calculate total days since first entry
+            const totalDaysSinceFirstEntry = getDaysBetween(currentProfile.firstEntry, currDate) - 1;
+            
+            const totalTimeElement = document.getElementById('total-time');
+            const totalTimeDetailElement = document.getElementById('total-time-detail');
+            
+            // Format as "days in UK / total days since first entry"
+            totalTimeElement.textContent = `${totalTime.totalDays}/${totalDaysSinceFirstEntry}`;
+            
+            // Convert totalDaysSinceFirstEntry to years and days
+            const totalYearsSinceEntry = Math.floor(totalDaysSinceFirstEntry / 365);
+            const totalRemainingDaysSinceEntry = totalDaysSinceFirstEntry % 365;
+            
+            totalTimeDetailElement.textContent = `of ${totalYearsSinceEntry} year${totalYearsSinceEntry !== 1 ? 's' : ''} and ${totalRemainingDaysSinceEntry} day${totalRemainingDaysSinceEntry !== 1 ? 's' : ''} since entry`;
+        }
+    }
+
+    function calculateTotalTimeInUK(firstEntryDate, currentDate, trips) {
+        const startDate = new Date(firstEntryDate);
+        const endDate = new Date(currentDate);
+        
+        // Total time in days between first entry and current date
+        const totalDays = getDaysBetween(startDate, endDate) - 1; // Subtract 1 because getDaysBetween includes both days
+        
+        // Calculate total days absent
+        const totalAbsenceDays = calculateTotalAbsence(trips, currentDate);
+        
+        // Time present in UK = total time - time absent
+        const daysInUK = totalDays - totalAbsenceDays;
+        
+        // Convert to years and days
+        const years = Math.floor(daysInUK / 365);
+        const remainingDays = daysInUK % 365;
+        
+        return { 
+            totalDays: daysInUK,
+            years,
+            remainingDays
+        };
     }
 
     // Refresh the UI based on the current profile
@@ -517,7 +562,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!currentProfile) return;
         
         const currDate = parseDate(currentDateInput.value) || new Date();
-        
+  
         // Update trips table
         updateTripsTable(currentProfile.trips, currDate);
         
@@ -527,7 +572,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Update summary
         updateSummary(rollingAbsence, daysUntilReduction);
-        
+ 
         // Create timeline
         createTimeline(currentProfile.firstEntry, currDate, currentProfile.trips);
     }
